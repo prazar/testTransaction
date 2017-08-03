@@ -1,0 +1,175 @@
+<?php
+
+class user
+{
+	public static function checkUserLoginPass($login='',$pass='') {
+		if (trim($login)!='' && trim($pass)!='') {
+			$login = str::removeBadChars($login);
+			$pass  = str::removeBadChars($pass);
+				$tmp   = json_decode(hash::make($pass));
+			$pass  = $tmp->data;
+
+			$db   = new db();
+			$link = $db->connect();
+			if ($link) {
+				$res = $link->prepare('SELECT id,name,balance FROM tb_users WHERE login=? AND pass=? LIMIT 1');
+				$res->bind_param("ss",$login,$pass);
+				if ($res) {
+		            $res->execute();
+
+		            $meta = $res->result_metadata();
+
+		            while ($field = $meta->fetch_field()) {
+		              $parameters[] = &$row[$field->name];
+		            }
+
+		            call_user_func_array(array($res, 'bind_result'), $parameters);
+
+		            while ($res->fetch()) {
+		              foreach($row as $key => $val) {
+		                $x[$key] = $val;
+		              }
+		              $results[] = $x;
+		            }
+
+		            $link->commit();
+		            $link->close();
+		            if (!isset($results)) { return report::error("Доступ запрещен! Пользователь с указанными логин/пароль не найден!"); }
+		            else { return $results; }
+
+		        }
+		        else { return report::error("Ошибка запроса провери пользователя!"); }
+			}
+			else { return report::error("База данных не доступна!"); }
+
+
+		}
+		else { return report::error("Ошибка логина и пароля!"); }
+	}
+
+	public static function logIn($login,$pass) {
+		$answer = self::checkUserLoginPass($login,$pass);
+		if (is_array($answer)) {
+			session_start();
+			$_SESSION['user_id']      = $answer[0]['id'];
+			$_SESSION['user_name']    = $answer[0]['name'];
+			session_write_close();
+			return report::ok("Авторизация успешна, вы будете перенаправлены в личный кабинет!");
+		}
+		else return $answer;
+	}
+
+	public static function isAuth() {
+		session_start();
+		if ( isset($_SESSION['user_id']) ) { session_write_close(); return true; }
+		else { session_destroy(); return false;  }
+		
+	}
+
+	public static function getName() {
+		session_start();
+		if ( isset($_SESSION['user_name']) ) { $name = $_SESSION['user_name']; session_write_close(); return $name; }
+		else { session_destroy(); return false;  }
+		
+	}
+
+	public static function getBalance() {
+		$user_id = $_SESSION['user_id'];
+		$db   = new db();
+		$link = $db->connect();
+		if ($link) {
+			$res = $link->prepare('SELECT balance FROM tb_users WHERE id=? LIMIT 1');
+			$res->bind_param("i",$user_id);
+			if ($res) {
+	            $res->execute();
+
+	            $meta = $res->result_metadata();
+
+	            while ($field = $meta->fetch_field()) {
+	              $parameters[] = &$row[$field->name];
+	            }
+
+	            call_user_func_array(array($res, 'bind_result'), $parameters);
+
+	            while ($res->fetch()) {
+	              foreach($row as $key => $val) {
+	                $x[$key] = $val;
+	              }
+	              $results[] = $x;
+	            }
+
+	            return round($results[0]['balance'],2);
+		}
+		
+		}
+		else { return false; }
+	}
+
+	public static function logOut() {
+		session_start();
+		session_destroy();
+		return true;
+		
+	}
+
+	public static function moneyWithdraw($summ='') {
+		if ($summ=='' || $summ==0) { return report::error("Сумма списания не указана"); }
+
+		$summ = str_replace(",", ".", $summ);
+		if (!is_numeric($summ)) {return report::error("Пожалуйста укажите сумму в виде 123.45 или 123,45"); }
+		$summ = str::removeBadChars($summ);
+		$summ = abs($summ);
+
+		session_start();
+		$user_id = $_SESSION['user_id'];
+		session_write_close();
+
+		$db   = new db();
+		$link = $db->connect();
+		if ($link) {
+				$res = $link->prepare('SELECT balance FROM tb_users WHERE id=? LIMIT 1');
+				$res->bind_param("i",$user_id);
+				if ($res) {
+		            $res->execute();
+
+		            $meta = $res->result_metadata();
+
+		            while ($field = $meta->fetch_field()) {
+		              $parameters[] = &$row[$field->name];
+		            }
+
+		            call_user_func_array(array($res, 'bind_result'), $parameters);
+
+		            while ($res->fetch()) {
+		              foreach($row as $key => $val) {
+		                $x[$key] = $val;
+		              }
+		              $results[] = $x;
+		            }
+
+		            if ($results[0]['balance']<=$summ) {
+		            	return report::error("Вы указали сумму больше чем имеется у Вас на счету");
+		            }
+		            $link->autocommit(FALSE);
+		            $link->query("UPDATE tb_users SET balance=balance-'$summ' WHERE id='$user_id'");
+		            $link->query("UPDATE tb_users SET balance=balance+'$summ' WHERE login='prime'");
+
+		            if (!$link->commit()) {
+		                 $link->rollback(); $link->close(); return report::error("Ошибка вывода средств, попробуйте позднее!");
+		            }
+		            else {
+
+		            }
+		            $link->close();
+					return report::ok("Вывод средств успешно осуществлен!");
+		        }
+		        else { return report::error("Ошибка запроса провери пользователя!"); }
+			}
+	}
+
+	private static function containsDecimal( $val ) {
+ 		return is_numeric( $val ) && floor( $val ) != $val;
+	}
+
+}
+?>

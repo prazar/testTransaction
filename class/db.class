@@ -1,0 +1,41 @@
+<?
+
+class db
+{
+
+	var $link;
+
+	public function connect() {
+		$mysqli =  new mysqli("localhost", "bil", "12(&mks33", "bil");
+
+		/* check connection */
+		if (mysqli_connect_errno()) {
+		    return false;
+		}
+		else {
+			/* set autocommit to off */
+			$mysqli->autocommit(FALSE);
+			$mysqli->set_charset("utf8");
+			$this->link = $mysqli;
+			return $mysqli;
+		}
+	}
+
+	public function prepare($str) {
+		$this->link->prepare($str);
+	}
+
+	public function exec() {
+		$this->link->execute();
+	}
+
+	public function addquery($str) {
+		$this->link->query($str);
+	}
+
+	public function commit() {
+		return $this->link->commit();
+	}
+}
+
+?>

@@ -1,0 +1,10 @@
+<?php
+
+	class Response
+	{
+		static public function JSON($status, $data, $user_parameters = array()){
+			return json_encode(array_merge(array("status" => $status, "data" => $data), $user_parameters), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+		}
+	}
+
+?>

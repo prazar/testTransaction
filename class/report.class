@@ -1,0 +1,37 @@
+<?php
+######################################
+#### MAIN REPORT CLASS
+#
+#
+
+class Report
+{
+
+	public static function error($text,$params=array()) {
+		$res = [
+		'error'        => true,
+		'text'         => $text,
+		'data'         => $params
+		];
+		return json_encode($res, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+	}
+
+	public static function ok($text,$params=array()) {
+		$res = [
+		'error'        => false,
+		'text'         => $text,
+		'data'         => $params
+		];
+		return json_encode($res, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+	}
+
+	public static function data($params=array()) {
+		$res = [
+		'error'        => false,
+		'data'         => $params
+		];
+		return json_encode($res, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+	}
+}
+
+?>

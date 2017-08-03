@@ -1,0 +1,11 @@
+<?
+
+class str
+{
+	public static function removeBadChars($str='') {
+		$str = strip_tags($str);
+		$str = htmlspecialchars($str);
+		return $str;
+	}
+}
+?>

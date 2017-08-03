@@ -1,0 +1,10 @@
+<?php
+
+	class Responde
+	{
+		static public function JSON($status, $data, $user_parameters = array()){
+			return die(RESPONSE::JSON($status, $data, $user_parameters));
+		}
+	}
+
+?>

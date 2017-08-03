@@ -1,0 +1,9 @@
+php_value auto_prepend_file    "C:/my_projects/blog.local/includes/auto_prepend.php"
+#php_value auto_prepend_file    "includes/auto_prepend.php"
+
+AddType application/x-httpd-php .class
+AddType application/x-httpd-php .tpl
+
+php_flag display_errors On
+php_flag display_startup_errors On
+Options -Indexes

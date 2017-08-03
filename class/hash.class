@@ -1,0 +1,24 @@
+<?php
+######################################
+#### MAIN HASH CLASS
+#
+#
+
+class hash
+{
+	// Main private key for strings
+	private static $hashKey = "Te-S1@T_OPdd";
+
+	public static function make ($string='') {
+		if (trim($string)=='') {
+			return report::error('Hashing string is empty!');
+		}
+		else {
+			$hash = hash('sha256', self::$hashKey.$string);
+			return report::ok('Hash create',$hash);
+		}
+	}
+
+}
+
+?>
